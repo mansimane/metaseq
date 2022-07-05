@@ -58,7 +58,7 @@ def add_extra_options_func(parser):
     )
     parser.add_argument(
         "--profile",
-        default=False,
+        default=True,
         action="store_true",
     )
     parser.add_argument("--max-update", "--mu", type=int, default=None)
@@ -96,7 +96,10 @@ def get_grid(args):
         )
 
     total_gpus = (args.num_gpus * args.num_nodes) // size.model_parallel
+    print("#### size: ", size)
+
     ddp_bsz = (size.batch_size // total_gpus) // SEQ_LEN
+    print(" #### ddp_bsz: ", ddp_bsz)
     total_updates = args.max_update
     if total_updates is None:
         total_updates = int(TOTAL_TRAIN_TOKENS) // size.batch_size

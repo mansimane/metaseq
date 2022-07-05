@@ -119,6 +119,7 @@ def _infer_single_node_init(cfg: DistributedTrainingConfig):
 
 
 def distributed_init(cfg: MetaseqConfig):
+    print(" #####  Inside distributed INIT ")
     if isinstance(cfg, Namespace):
         from metaseq.dataclass.utils import convert_namespace_to_omegaconf
 
@@ -156,7 +157,7 @@ def distributed_init(cfg: MetaseqConfig):
         logging.getLogger().setLevel(logging.INFO)
     else:
         logging.getLogger().setLevel(logging.WARNING)
-
+    print(" #### Model parallel size : ", cfg.common.model_parallel_size)
     if cfg.common.model_parallel_size > 1:
         try:
             from megatron.mpu import (

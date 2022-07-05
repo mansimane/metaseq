@@ -314,8 +314,10 @@ def train(
         )
 
         return valid_losses, should_stop
-
+    print("#### Overriding new profiler flag to true")
+    cfg.common.new_profiler = True
     for i, samples in enumerate(progress):
+        print("### Inside training loop, i: ", i)
         if (
             distributed_utils.get_global_rank() == 0
             and cfg.common.new_profiler
@@ -329,10 +331,12 @@ def train(
                 os.path.join(cfg.checkpoint.save_dir, "profiler_trace.json")
             )
         else:
+            print(" #####  Calling simple training ")
             valid_losses, should_stop = train(i, samples)
         if should_stop:
             break
-
+    print(" ######################3 Profiler stats")
+    print(prof.key_averages().table(sort_by="self_cuda_time_total"))
     # log end-of-epoch stats
     logger.info("end of epoch {} (average epoch stats below)".format(epoch_itr.epoch))
     stats = get_training_stats(metrics.get_smoothed_values("train"))
@@ -409,7 +413,8 @@ def validate_and_save(
     ) and not cfg.dataset.disable_validation
     valid_losses = [None]
     if do_validate:
-        valid_losses = validate(cfg, trainer, task, epoch_itr, valid_subsets)
+        pass
+        #valid_losses = validate(cfg, trainer, task, epoch_itr, valid_subsets)
 
     should_stop |= should_stop_early(cfg, valid_losses[0])
 
@@ -589,10 +594,11 @@ def cli_main(
 ) -> None:
     parser = options.get_training_parser()
     args = options.parse_args_and_arch(parser, modify_parser=modify_parser)
-
+    print("####### Aargs in cli_main: ", args)
     # For training - this is where arg parsing happens.
     cfg = convert_namespace_to_omegaconf(args)
-
+    #print(" #########  Overriding profile option in main #########")
+    #args.profile = True
     if cfg.common.use_plasma_view:
         server = PlasmaStore(path=cfg.common.plasma_path)
         logger.info(
@@ -600,6 +606,7 @@ def cli_main(
         )
 
     if args.profile:
+        print(" Using profiler")
         with torch.cuda.profiler.profile():
             with torch.autograd.profiler.emit_nvtx():
                 distributed_utils.call_main(cfg, main)

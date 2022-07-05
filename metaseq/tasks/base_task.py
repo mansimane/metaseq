@@ -405,12 +405,20 @@ class BaseTask(object):
         """
         model.train()
         model.set_num_updates(update_num)
+        import time
+
         with torch.autograd.profiler.record_function("forward"):
+            st = time.time()
             loss, sample_size, logging_output = criterion(model, sample)
+            et = time.time()
+            print('#Forward:\t', et-st)
         if ignore_grad:
             loss *= 0
         with torch.autograd.profiler.record_function("backward"):
+            st = time.time()
             optimizer.backward(loss)
+            et = time.time()
+            print('#Backward\t', et-st)
         return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):
