@@ -50,8 +50,14 @@ class CrossEntropyCriterion(BaseCriterion):
         2) the sample size, which is used as the denominator for the gradient
         3) logging outputs to display while training
         """
+
         net_output = model(**sample["net_input"])
+        torch.cuda.nvtx.range_push('COMPUTE_LOSS')
         loss, _ = self.compute_loss(model, net_output, sample, reduce=reduce)
+        torch.cuda.nvtx.range_pop()
+
+        torch.cuda.nvtx.range_push('FORWARD_LOGGING')
+
         sample_size = sample["ntokens"]
         logging_output = {
             "loss": loss.data,
@@ -82,7 +88,7 @@ class CrossEntropyCriterion(BaseCriterion):
                     logging_output[f"{key}_norm"] = value.norm(p=2, dim=-1).sum(
                         dtype=torch.float32
                     )
-
+        torch.cuda.nvtx.range_pop()
         return loss, sample_size, logging_output
 
     def compute_loss(self, model, net_output, sample, reduce=True):

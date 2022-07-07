@@ -409,23 +409,16 @@ class BaseTask(object):
         model.set_num_updates(update_num)
         import time
 
-        with torch.autograd.profiler.record_function("forward"):
+        #with torch.autograd.profiler.record_function("forward"):
             #self.start.record()
-            loss, sample_size, logging_output = criterion(model, sample)
-            #self.end.record()
-            #torch.cuda.synchronize()
-            #print("'#Forward:\t", self.start.elapsed_time(self.end))
-            #et = time.time()
-            #print('#Forward:\t', et-st)
+        torch.cuda.nvtx.range_push('FORWARD')
+        loss, sample_size, logging_output = criterion(model, sample)
+        torch.cuda.nvtx.range_pop()
         if ignore_grad:
             loss *= 0
-        with torch.autograd.profiler.record_function("backward"):
-            #self.start.record()
-            optimizer.backward(loss)
-            #self.end.record()
-            #torch.cuda.synchronize()
-            #et = time.time()
-            #print('#Backward\t', self.start.elapsed_time(self.end))
+        torch.cuda.nvtx.range_push('BACKWARD')
+        optimizer.backward(loss)
+        torch.cuda.nvtx.range_pop()
         return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):

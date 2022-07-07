@@ -748,34 +748,42 @@ class Trainer(object):
         overflow = False
         logger.debug(f"[{self.get_num_updates()}] done with fwd, bwd")
         try:
-            with torch.autograd.profiler.record_function("reduce-grads"):
-                # reduce gradients across workers
-                self.optimizer.all_reduce_grads(self.model)
-                if utils.has_parameters(self.criterion):
-                    self.optimizer.all_reduce_grads(self.criterion)
+            # with torch.autograd.profiler.record_function("reduce-grads"):
+            torch.cuda.nvtx.range_push('REDUCE-GRADS')
+            # reduce gradients across workers
+            self.optimizer.all_reduce_grads(self.model)
+            if utils.has_parameters(self.criterion):
+                self.optimizer.all_reduce_grads(self.criterion)
+            torch.cuda.nvtx.range_pop()
 
-            with torch.autograd.profiler.record_function("multiply-grads"):
-                # multiply gradients by (data_parallel_size / sample_size) since
-                # DDP normalizes by the number of data parallel workers for
-                # improved fp16 precision.
-                # Thus we get (sum_of_gradients / sample_size) at the end.
-                # In case of fp16, this step also undoes loss scaling.
-                # (Debugging note: Some optimizers perform this scaling on the
-                # fly, so inspecting model.parameters() or optimizer.params may
-                # still show the original, unscaled gradients.)
-                numer = self.data_parallel_world_size if self._sync_stats() else 1
-                self.optimizer.multiply_grads(numer / (sample_size or 1.0))
-                # Note: (sample_size or 1.0) handles the case of a zero gradient, in a
-                # way that avoids CPU/device transfers in case sample_size is a GPU or
-                # TPU object. The assumption is that the gradient itself is also 0.
+            # with torch.autograd.profiler.record_function("multiply-grads"):
+            torch.cuda.nvtx.range_push('MULTIPLY-GRADS')
 
-            with torch.autograd.profiler.record_function("clip-grads"):
-                # clip grads
-                grad_norm = self.clip_grad_norm(
-                    self.cfg.optimization.clip_norm,
-                    self.cfg.optimization.clip_norm_type,
-                    self.cfg.optimization.skip_gradient_update_on_clip_norm,
-                )
+            # multiply gradients by (data_parallel_size / sample_size) since
+            # DDP normalizes by the number of data parallel workers for
+            # improved fp16 precision.
+            # Thus we get (sum_of_gradients / sample_size) at the end.
+            # In case of fp16, this step also undoes loss scaling.
+            # (Debugging note: Some optimizers perform this scaling on the
+            # fly, so inspecting model.parameters() or optimizer.params may
+            # still show the original, unscaled gradients.)
+            numer = self.data_parallel_world_size if self._sync_stats() else 1
+            self.optimizer.multiply_grads(numer / (sample_size or 1.0))
+            # Note: (sample_size or 1.0) handles the case of a zero gradient, in a
+            # way that avoids CPU/device transfers in case sample_size is a GPU or
+            # TPU object. The assumption is that the gradient itself is also 0.
+            torch.cuda.nvtx.range_pop()
+
+            # with torch.autograd.profiler.record_function("clip-grads"):
+            torch.cuda.nvtx.range_push('CLIP-GRADS')
+
+            # clip grads
+            grad_norm = self.clip_grad_norm(
+                self.cfg.optimization.clip_norm,
+                self.cfg.optimization.clip_norm_type,
+                self.cfg.optimization.skip_gradient_update_on_clip_norm,
+            )
+            torch.cuda.nvtx.range_pop()
 
             # check that grad norms are consistent across workers
             self._check_grad_norms(grad_norm)
@@ -783,11 +791,14 @@ class Trainer(object):
                 # check local gradnorm single GPU case, trigger NanDetector
                 raise FloatingPointError("gradients are Nan/Inf")
 
-            with torch.autograd.profiler.record_function("optimizer"):
+            torch.cuda.nvtx.range_push('OPTIMIZER-STEP')
+            # with torch.autograd.profiler.record_function("optimizer"):
                 # take an optimization step
-                self.task.optimizer_step(
-                    self.optimizer, model=self.model, update_num=self.get_num_updates()
-                )
+            self.task.optimizer_step(
+                self.optimizer, model=self.model, update_num=self.get_num_updates()
+            )
+            torch.cuda.nvtx.range_pop()
+
             logger.debug(f"[{self.get_num_updates()}] done with optimizer step")
 
         except FloatingPointError:
