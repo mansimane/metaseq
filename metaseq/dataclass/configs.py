@@ -196,7 +196,7 @@ class CommonConfig(MetaseqDataclass):
     log_nvidia_smi: bool = field(
         default=False, metadata={"help": "log output from nvidia-smi during training"}
     )
-        new_profiler: bool = field(
+    new_profiler: bool = field(
         default=False, metadata={"help": "use pytorch profiler (v2)"}
     )
     dont_log_param_and_grad_norm: Optional[bool] = field(

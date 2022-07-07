@@ -86,6 +86,8 @@ class BaseTask(object):
         self.datasets = dict()
         self.dataset_to_epoch_iter = dict()
         self.state = StatefulContainer()
+        #self.start = torch.cuda.Event(enable_timing=True)
+        #self.end = torch.cuda.Event(enable_timing=True)
 
     @classmethod
     def load_dictionary(cls, filename):
@@ -408,17 +410,22 @@ class BaseTask(object):
         import time
 
         with torch.autograd.profiler.record_function("forward"):
-            st = time.time()
+            #self.start.record()
             loss, sample_size, logging_output = criterion(model, sample)
-            et = time.time()
-            print('#Forward:\t', et-st)
+            #self.end.record()
+            #torch.cuda.synchronize()
+            #print("'#Forward:\t", self.start.elapsed_time(self.end))
+            #et = time.time()
+            #print('#Forward:\t', et-st)
         if ignore_grad:
             loss *= 0
         with torch.autograd.profiler.record_function("backward"):
-            st = time.time()
+            #self.start.record()
             optimizer.backward(loss)
-            et = time.time()
-            print('#Backward\t', et-st)
+            #self.end.record()
+            #torch.cuda.synchronize()
+            #et = time.time()
+            #print('#Backward\t', self.start.elapsed_time(self.end))
         return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):

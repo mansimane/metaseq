@@ -11,5 +11,7 @@ args = parser.parse_args()
 
 fw_df = pd.read_csv(args.forward_log, sep='\t')
 bw_df = pd.read_csv(args.backward_log, sep='\t')
+print("Forward pass times")
 print(fw_df.describe())
+print("Backward pass times")
 print(bw_df.describe())

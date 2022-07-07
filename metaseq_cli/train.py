@@ -321,7 +321,7 @@ def train(
         if (
             distributed_utils.get_global_rank() == 0
             and cfg.common.new_profiler
-            and i == 5
+            #and i == 5
         ):
             logger.info("STARTING PROFILER")
             with profiler.profile() as prof:
@@ -335,8 +335,8 @@ def train(
             valid_losses, should_stop = train(i, samples)
         if should_stop:
             break
-    print(" ######################3 Profiler stats")
-    print(prof.key_averages().table(sort_by="self_cuda_time_total"))
+    #print(" ######################3 Profiler stats")
+    #print(prof.key_averages().table(sort_by="self_cuda_time_total"))
     # log end-of-epoch stats
     logger.info("end of epoch {} (average epoch stats below)".format(epoch_itr.epoch))
     stats = get_training_stats(metrics.get_smoothed_values("train"))

@@ -29,18 +29,19 @@ class Size:
 TOTAL_TRAIN_TOKENS = 300e9
 TOTAL_WARMUP_TOKENS = 375e6
 M = 1024 * 1024  # 1 million
+K = 1024
 MODEL_SIZES = {
     "8m": Size(4, 128, 2, 64, int(0.5 * M), 1.0e-3, 2),  # tiny
     "125m": Size(1, 768, 12, 64, int(0.5 * M), 6.0e-4, 2),  # small
     "350m": Size(1, 1024, 16, 64, int(0.5 * M), 3.0e-4, 2),  # medium
     "760m": Size(1, 1536, 16, 96, int(0.5 * M), 2.5e-4, 2),  # large
-    "1.3b": Size(1, 2048, 32, 64, int(0.5 * M), 2.0e-4, 2),  # xl
+    "1.3b": Size(1, 2048, 32, 64, int(8 * K), 2.0e-4, 2),  # xl
     "2.7b": Size(1, 2560, 32, 80, int(0.5 * M), 1.6e-4, 4),
     "6.7b": Size(1, 4096, 32, 128, int(0.5 * M), 1.2e-4, 2),
     "13b": Size(1, 5120, 40, 128, int(0.5 * M), 1.0e-4, 2),
     "30b": Size(1, 7168, 56, 128, int(0.50 * M), 1.0e-4, 2),
     "66b": Size(1, 9216, 72, 128, int(0.1 * M), 8e-5, 8),
-    "175b": Size(1, 12288, 96, 128, int(0.015625 * M), 3e-5, 8),
+    "175b": Size(1, 12288, 96, 128, int(2 * K), 3e-5, 8),
 }
 
 # from appendix b of https://arxiv.org/pdf/2005.14165.pdf
