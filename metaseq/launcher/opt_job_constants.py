@@ -41,7 +41,7 @@ MODEL_SIZES = {
     "13b": Size(1, 5120, 40, 128, int(0.5 * M), 1.0e-4, 2),
     "30b": Size(1, 7168, 56, 128, int(0.50 * M), 1.0e-4, 2),
     "66b": Size(1, 9216, 72, 128, int(0.1 * M), 8e-5, 8),
-    "175b": Size(1, 12288, 96, 128, int(2 * K), 3e-5, 8),
+    "175b": Size(1, 12288, 96, 128, int(16 * K), 3e-5, 8),
 }
 
 # from appendix b of https://arxiv.org/pdf/2005.14165.pdf
