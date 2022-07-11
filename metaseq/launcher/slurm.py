@@ -162,7 +162,7 @@ def gen_train_command(args, env, config, oss_destination, save_dir, save_dir_key
         )
     if args.data is not None:
         train_cmd.extend([args.data])
-    if args.local_torch.cuda.nvtx.range_push('FORWARD')ts_dir is None:
+    if args.local_checkpoints_dir is None:
         train_cmd.extend(["--save-dir", save_dir])
     else:
         num_total_gpus = args.num_nodes * args.num_gpus
