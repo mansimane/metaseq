@@ -46,7 +46,7 @@ def get_gpu_memory_map_torch():
     max_alloced /= 1024**3
 
     return alloced, max_alloced
-ß
+
 class MemoryMonitor:
     def __init__(self):
         self.keep_measuring = True
