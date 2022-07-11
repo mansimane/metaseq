@@ -9,7 +9,8 @@ This sweep script takes some additional optional arguments. See add_extra_option
 for more details.
 """
 import os
-
+from concurrent.futures import ThreadPoolExecutor
+from utils import MemoryMonitor
 from metaseq.launcher.opt_job_constants import (
     TOTAL_TRAIN_TOKENS,
     TOTAL_WARMUP_TOKENS,
@@ -97,7 +98,8 @@ def get_grid(args):
 
     total_gpus = (args.num_gpus * args.num_nodes) // size.model_parallel
     print("#### size: ", size)
-
+    # 16 / 1/ 2k
+    # 8
     ddp_bsz = (size.batch_size // total_gpus) // SEQ_LEN
     print(" #### ddp_bsz: ", ddp_bsz)
     total_updates = args.max_update
@@ -313,10 +315,18 @@ def postprocess_hyperparams(args, config):
 
 
 def cli_main():
+    monitor = MemoryMonitor()
+    executor = ThreadPoolExecutor()
+    mem_thread = executor.submit(monitor.measure_usage)
+
     sweep_main(
         get_grid, postprocess_hyperparams, add_extra_options_func=add_extra_options_func
     )
 
+    monitor.keep_measuring = False
+    avg_mem_use_smi, max_mem_use_smi, avg_torch_alloced, avg_total_torch_max_alloced, max_usage_torch_alloced, max_usage_torch_max_alloced = mem_thread.result()
+    print(" #### Average GPU memory usage in MB: ", avg_mem_use_smi)
+    print(" #### Maximum GPU memory usage in MB: ", max_mem_use_smi)
 
 if __name__ == "__main__":
     cli_main()
