@@ -28,6 +28,7 @@ from metaseq import (
     tasks,
     utils,
 )
+from metaseq.launcher.utils import MemoryMonitor
 from metaseq.data import iterators, data_utils
 from metaseq.data.plasma_utils import PlasmaStore
 from metaseq.dataclass.utils import convert_namespace_to_omegaconf
@@ -284,6 +285,11 @@ def train(
         i,
         samples,
     ):
+        if distributed_utils.get_global_rank() == 0:
+            monitor = MemoryMonitor()
+            executor = ThreadPoolExecutor()
+            mem_thread = executor.submit(monitor.measure_usage)
+
         with metrics.aggregate("train_inner"), torch.autograd.profiler.record_function(
             "train_step-%d" % i
         ):
@@ -337,6 +343,17 @@ def train(
             break
     #print(" ######################3 Profiler stats")
     #print(prof.key_averages().table(sort_by="self_cuda_time_total"))
+
+    if distributed_utils.get_global_rank() == 0:
+        monitor.keep_measuring = False
+        avg_mem_use_smi, max_mem_use_smi, avg_torch_alloced, avg_total_torch_max_alloced, max_usage_torch_alloced, max_usage_torch_max_alloced = mem_thread.result()
+        print(" #### SMI Average GPU memory usage in MB: ", avg_mem_use_smi)
+        print(" #### SMI Maximum GPU memory usage in MB: ", max_mem_use_smi)
+        print(" #### Torch Average GPU memory usage in MB: ", avg_torch_alloced)
+        print(" #### Torch Maximum GPU memory usage in MB: ", avg_total_torch_max_alloced)
+        print(" #### MAX Torch Average GPU memory usage in MB: ", max_usage_torch_alloced)
+        print(" #### MAX Torch Maximum GPU memory usage in MB: ", max_usage_torch_max_alloced)
+
     # log end-of-epoch stats
     logger.info("end of epoch {} (average epoch stats below)".format(epoch_itr.epoch))
     stats = get_training_stats(metrics.get_smoothed_values("train"))

@@ -315,9 +315,7 @@ def postprocess_hyperparams(args, config):
 
 
 def cli_main():
-    monitor = MemoryMonitor()
-    executor = ThreadPoolExecutor()
-    mem_thread = executor.submit(monitor.measure_usage)
+
 
     sweep_main(
         get_grid, postprocess_hyperparams, add_extra_options_func=add_extra_options_func
