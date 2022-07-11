@@ -10,7 +10,7 @@ for more details.
 """
 import os
 from concurrent.futures import ThreadPoolExecutor
-from utils import MemoryMonitor
+from metaseq.launcher.utils import MemoryMonitor
 from metaseq.launcher.opt_job_constants import (
     TOTAL_TRAIN_TOKENS,
     TOTAL_WARMUP_TOKENS,
@@ -325,8 +325,13 @@ def cli_main():
 
     monitor.keep_measuring = False
     avg_mem_use_smi, max_mem_use_smi, avg_torch_alloced, avg_total_torch_max_alloced, max_usage_torch_alloced, max_usage_torch_max_alloced = mem_thread.result()
-    print(" #### Average GPU memory usage in MB: ", avg_mem_use_smi)
-    print(" #### Maximum GPU memory usage in MB: ", max_mem_use_smi)
+    print(" #### SMI Average GPU memory usage in MB: ", avg_mem_use_smi)
+    print(" #### SMI Maximum GPU memory usage in MB: ", max_mem_use_smi)
+    print(" #### Torch Average GPU memory usage in MB: ", avg_torch_alloced)
+    print(" #### Torch Maximum GPU memory usage in MB: ", avg_total_torch_max_alloced)
+    print(" #### MAX Torch Average GPU memory usage in MB: ", max_usage_torch_alloced)
+    print(" #### MAX Torch Maximum GPU memory usage in MB: ", max_usage_torch_max_alloced)
+
 
 if __name__ == "__main__":
     cli_main()

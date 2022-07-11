@@ -501,7 +501,7 @@ class CheckpointConfig(MetaseqDataclass):
         },
     )
     save_interval: int = field(
-        default=1, metadata={"help": "save a checkpoint every N epochs"}
+        default=100, metadata={"help": "save a checkpoint every N epochs"}
     )
     save_interval_updates: int = field(
         default=0, metadata={"help": "save a checkpoint (and validate) every N updates"}
