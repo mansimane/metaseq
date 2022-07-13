@@ -321,15 +321,5 @@ def cli_main():
         get_grid, postprocess_hyperparams, add_extra_options_func=add_extra_options_func
     )
 
-    monitor.keep_measuring = False
-    avg_mem_use_smi, max_mem_use_smi, avg_torch_alloced, avg_total_torch_max_alloced, max_usage_torch_alloced, max_usage_torch_max_alloced = mem_thread.result()
-    print(" #### SMI Average GPU memory usage in MB: ", avg_mem_use_smi)
-    print(" #### SMI Maximum GPU memory usage in MB: ", max_mem_use_smi)
-    print(" #### Torch Average GPU memory usage in MB: ", avg_torch_alloced)
-    print(" #### Torch Maximum GPU memory usage in MB: ", avg_total_torch_max_alloced)
-    print(" #### MAX Torch Average GPU memory usage in MB: ", max_usage_torch_alloced)
-    print(" #### MAX Torch Maximum GPU memory usage in MB: ", max_usage_torch_max_alloced)
-
-
 if __name__ == "__main__":
     cli_main()
