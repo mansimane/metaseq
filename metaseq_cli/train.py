@@ -314,8 +314,9 @@ def train(
         )
 
         return valid_losses, should_stop
-    print("#### Overriding new profiler flag to true")
-    cfg.common.new_profiler = True
+    print("#### Overriding new profiler flag to False")
+    cfg.common.new_profiler = False
+    torch.cuda.synchronize()  # wait for warm-up to finish
     for i, samples in enumerate(progress):
         print("### Inside training loop, i: ", i)
         if (
