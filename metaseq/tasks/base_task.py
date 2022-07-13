@@ -409,6 +409,7 @@ class BaseTask(object):
         model.set_num_updates(update_num)
         import time
         #self.start.record()
+        torch.cuda.synchronize()
         st = time.time()
         loss, sample_size, logging_output = criterion(model, sample)
         #self.end.record()

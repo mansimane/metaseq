@@ -14,7 +14,7 @@ import sys
 import time
 from itertools import chain
 from typing import Any, Dict, List
-
+import time
 import torch
 from omegaconf import OmegaConf
 
@@ -783,11 +783,17 @@ class Trainer(object):
                 # check local gradnorm single GPU case, trigger NanDetector
                 raise FloatingPointError("gradients are Nan/Inf")
 
-            with torch.autograd.profiler.record_function("optimizer"):
-                # take an optimization step
-                self.task.optimizer_step(
+            # with torch.autograd.profiler.record_function("optimizer"):
+            torch.cuda.synchronize()
+            st = time.time()
+            # take an optimization step
+            self.task.optimizer_step(
                     self.optimizer, model=self.model, update_num=self.get_num_updates()
                 )
+            torch.cuda.synchronize()
+            et = time.time()
+            print('#Optimizer :\t', et - st)
+
             logger.debug(f"[{self.get_num_updates()}] done with optimizer step")
 
         except FloatingPointError:
